@@ -2,6 +2,7 @@ import discord
 from discord.ext import commands
 
 import os
+import traceback
 
 bot = commands.Bot(command_prefix="$")
 token = os.environ['DISCORD_BOT_TOKEN']
@@ -24,6 +25,12 @@ async def join(ctx):
     print("connected to:",channel.name)
 
 
+@bot.event
+async def on_command_error(ctx, error):
+    orig_error = getattr(error, "original", error)
+    error_msg = ''.join(traceback.TracebackException.from_exception(orig_error).format())
+    await ctx.send(error_msg)
+
 @bot.command(aliases=["disconnect","bye"])
 async def leave(ctx):
     """Botをボイスチャンネルから切断します。"""
@@ -38,9 +45,16 @@ async def leave(ctx):
 
 
 @bot.command()
+async def ping(ctx):
+    await ctx.send('pong')
+
 async def play(ctx):
     """指定された音声ファイルを流します。"""
     voice_client = ctx.message.guild.voice_client
+
+if not discord.opus.is_loaded(): 
+    #もし未ロードだったら
+    discord.opus.load_opus("heroku-buildpack-libopus")
 
     if not voice_client:
         await ctx.send("Botはこのサーバーのボイスチャンネルに参加していません。")

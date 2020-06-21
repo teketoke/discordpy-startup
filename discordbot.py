@@ -17,5 +17,9 @@ async def on_command_error(ctx, error):
 async def ping(ctx):
     await ctx.send('pong')
 
+if not discord.opus.is_loaded(): 
+    #もし未ロードだったら
+    discord.opus.load_opus("heroku-buildpack-libopus")
+
 
 bot.run(token)
